@@ -9,7 +9,7 @@ import os
 import logging
 import asyncio
 
-
+### HELP TEXT
 COMMANDS = '''***COMMANDS***
 /bye             - end the game
 /vote <username> - vote to execute a player (placeholder)
@@ -19,16 +19,31 @@ Any other text will be treated as dialogue by the game.
 TIP: press enter to say nothing, and load more dialogue
 '''
 
+### PRINT_MESSAGES
+# helper function for display
+def print_messages(msg_log):
+    for msg in msg_log:
+        if msg['role'] != 'assistant':
+            try:
+                print(msg['content'], flush=True)
+            except:
+                pass #eh
 
+### STATES
 NAMING_STATE = "UI_NAME_STATE"
 ACTION_STATE = "UI_ACTION_STATE"
 
+### UIFSMBEHAVIOUR
+# the finite state machine for the user interface, kills the whole agent if
+# it goes down
 class UIFSMBehaviour(FSMBehaviour):
     async def on_end(self):
         logging.info(f"FSM finished at state {self.current_state}")
         self.kill(10)
         await self.agent.stop()
 
+### NAMINGSTATE
+# the start process for the user, picking a name
 class NamingState(State):
     async def run(self):
         try:
@@ -62,16 +77,8 @@ class NamingState(State):
             logging.exception(e)
             self.kill(exit_code=1)
 
-
-def print_messages(msg_log):
-    for msg in msg_log:
-        if msg['role'] != 'assistant':
-            try:
-                print(msg['content'], flush=True)
-            except:
-                pass #eh
-
-
+### ACTIONSTATE
+# the process of how the user actually interacts with the environment
 class ActionState(State):
     async def run(self):
         try:
@@ -115,6 +122,8 @@ class ActionState(State):
             logging.exception(e)
             self.kill(exit_code=1)
 
+### USERINTERFACEAGENT
+# holds it all together
 class userInterfaceAgent(Agent):
     async def setup(self):
         self.game_loop = UIFSMBehaviour()
@@ -125,7 +134,7 @@ class userInterfaceAgent(Agent):
 
         self.add_behaviour(self.game_loop)
 
-
+### TESTING
 async def main():
     useragent = userInterfaceAgent("user@localhost", "user")
     player = PlayerAgent("userplayer@localhost", "userplayer", "user@localhost", "user")

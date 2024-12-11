@@ -1,14 +1,21 @@
-import spade
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, OneShotBehaviour
 from spade.template import Template
 from spade.message import Message
 import json
-import os
 import logging
 
 MESSAGE_TIMEOUT = 300
 
+### CHATROOMAGENT
+# manages a virtual chatroom for players. stores chat messages in a log and 
+# responds to queries about the chat history.
+#
+# ARGUMENTS
+# room_name     - village/hideout, or day/night, but just "village" for now
+#
+# ATTRIBUTES
+# chat_log      - holds all the chat history
 class ChatRoomAgent(Agent):
     def __init__(self, jid, password, room_name, **kwargs):
         super().__init__(jid, password, **kwargs)
@@ -19,7 +26,10 @@ class ChatRoomAgent(Agent):
     def log(self, source, message):
         return f"{self.name}: {source}: {message}"
 
-    # returns each message as a completion, which can be inserted directly into the context
+    ### GETMSGBEHAVIOUR
+    # takes messages sent by agents and stores them
+    #
+    # TODO: validating though a player list about who can actually send them
     class GetMsgBehaviour(CyclicBehaviour):
         async def run(self):
             try:
@@ -36,6 +46,9 @@ class ChatRoomAgent(Agent):
             except Exception as e:
                 logging.error(self.agent.log("GetMsgBehaviour, receiving", e))
 
+    ### SERVECHATBEHAVIOUR
+    # the behaviour called by other agents when they want to grab messages
+    # takes the index of the latest message, to reduce redundancy
     class ServeChatBehaviour(CyclicBehaviour):
         async def run(self):
             try:
@@ -62,12 +75,12 @@ class ChatRoomAgent(Agent):
     async def setup(self):
         msg_loop = self.GetMsgBehaviour()
         msg_template = Template()
-        msg_template.set_metadata("performative", "inform")
+        msg_template.metadata = {"performative": "inform"}
         self.add_behaviour(msg_loop, msg_template)
 
         chat_serve = self.ServeChatBehaviour()
         serve_template = Template()
-        serve_template.set_metadata("performative", "query")
+        serve_template.metadata = {"performative": "query"}
         self.add_behaviour(chat_serve, serve_template)
 
 ### TESTING

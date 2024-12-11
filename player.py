@@ -1,9 +1,8 @@
 import spade
 from spade.agent import Agent
 from llminterface import LLMInterfaceAgent
-from spade.behaviour import FSMBehaviour, State, CyclicBehaviour
+from spade.behaviour import FSMBehaviour, State
 from spade.message import Message
-from spade.template import Template
 from chatroom import ChatRoomAgent
 import json
 from asyncio import sleep
@@ -53,7 +52,7 @@ PROMPT_TIMEOUT = 300
 # TODO: dynamically change the chat address from a static to a dynamic one, in 
 #       order to facilitate phase changes
 class PlayerAgent(Agent):
-    def __init__(self, jid, password, player_interface, max_memory = 5, 
+    def __init__(self, jid, password, player_interface, max_memory = 10, 
                  wait_period = 10, wait_variance = 5, **kwargs):
         super().__init__(jid, password, **kwargs)
 
@@ -126,7 +125,7 @@ class PlayerAgent(Agent):
                 message.body = json.dumps(notification)
 
                 logging.info(self.agent.log("JoinRoomState", message.body))
-                #await self.send(message)
+                await self.send(message)
                 self.set_next_state(GET_CHAT_STATE)
 
             except Exception as e:
@@ -151,7 +150,9 @@ class PlayerAgent(Agent):
                 # process
                 try:
                     response = await self.receive(timeout=CHAT_TIMEOUT)
+
                     if response:
+
                         new_messages = json.loads(response.body)
                         self.agent.chat_index += len(new_messages)
                         logging.debug(self.agent.log("GetChatState", 
@@ -226,12 +227,12 @@ class PlayerAgent(Agent):
                         logging.debug(self.agent.log("PromptState", 
                                 f"received data from {self.agent.player_interface}: {message}: {type(message)}"))
                         
-
-                        if message["content"] != "":
-                            message["content"] = message["content"]
+                        if "content" in message and message["content"] != "":
                             self.agent.memory.append(message)
                             self.set_next_state(SEND_STATE) # continue
                             return
+                        else:
+                            logging.warning(self.agent.log("PromptState", "Message does not contain 'content' or is empty"))
 
                     else:
                         logging.warning(self.agent.log("PromptState", 

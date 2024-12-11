@@ -3,15 +3,21 @@ from spade.agent import Agent
 from spade.template import Template
 from spade.message import Message
 from asyncio import sleep
+from openai import OpenAI
 import logging
 import spade
 import json
 
-from openai import OpenAI
 import logging
 
 LISTEN_TIMEOUT = 10
 
+### LLM
+# holds some functions for promting the openAI chat completions API
+# defaults to running ollama on localhost
+# 
+# ARGUMENTS
+# model         - the llm to power the ai, defaults to llama
 class LLM:
     def __init__(self, model = 'llama3.1'):
         self.client = OpenAI(
@@ -30,7 +36,12 @@ class LLM:
         logging.debug(f"{self.model}: {response}")
         return response
 
-
+### LLMINTERFACEAGENT
+# the alternative to the user interface, which connects with a player agent
+# so that an LLM can interact with the game, instead of a human
+#
+# ARGUMENTS
+# model         - the llm to power the ai, also defaults to llama
 class LLMInterfaceAgent(Agent):
     def __init__(self, jid, password, model='llama3.1', **kwargs):
         super().__init__(jid, password, **kwargs)
@@ -41,6 +52,7 @@ class LLMInterfaceAgent(Agent):
         return f"{self.name}: {source}: {message}"
     
     ### PROMPTBEHAVIOUR
+    # prompts the LLM and returns its response as an assistant-type message
     class PromptBehaviour(CyclicBehaviour): 
         async def run(self):
             try:

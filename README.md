@@ -1,9 +1,9 @@
 # Multi-Agent Wolf
 This has been an interesting project so far. It's nowhere near done: I don't actually have the AI playing the game with each other yet, but I've managed to make a (relatively) stable platform where you can, at the least, sit in a chat room and mingle with some large language models.
 
-I've learned some things for sure, like how I kind of resent dumping and loading JSON data so much. I swear, there's still a bug floating around in there because some functions want strings, while others don't.
+I've learned some things for sure, like how I kind of resent dumping and loading JSON data so much. I swear, there's still a bug floating around in there, and I'm so sorry, but if your name is Jason, I don't think I'll be able to hear it for a while.
 
-It's not entirely polished, but my exception handling and logging has overall improved.
+It's not entirely polished, but my exception handling and logging have overall improved.
 
 That and, I just really enjoy working with agent. I'm sure I'll continue working on this in the future.
 
